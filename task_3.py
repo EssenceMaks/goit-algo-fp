@@ -32,7 +32,7 @@ class Graph:
         while priority_queue:
             current_distance, current_node = heapq.heappop(priority_queue)
 
-            # Якщо поточна відст��нь більша за збережену, продовжуємо
+            # Якщо поточна відстнь більша за збережену, продовжуємо
             if current_distance > distances[current_node]:
                 continue
 
@@ -72,7 +72,7 @@ class Graph:
         plt.title("Візуалізація графа")
         plt.axis('off')
         plt.savefig('images/graph.png')
-        plt.show()
+        plt.close()
 
     def visualize_path(self, start, end, pos=None):
         distances = self.dijkstra(start)
@@ -88,8 +88,37 @@ class Graph:
             path.append(start)
             path.reverse()
         
-        self.visualize(path, pos)
-        plt.savefig('images/nodes-path.png')
+        # Створюємо нову фігуру для візуалізації шляху
+        G = nx.DiGraph()
+        
+        # Додаємо ребра до графа
+        for edge in self.edges:
+            source, destination, weight = edge
+            G.add_edge(source, destination, weight=weight)
+
+        if pos is None:
+            pos = nx.spring_layout(G, seed=42)
+
+        plt.figure(figsize=(10, 6))
+        
+        # Малюємо основний граф
+        nx.draw(G, pos, with_labels=True, node_color='skyblue', 
+                node_size=1500, font_size=12, font_color='black', edge_color='gray')
+        
+        # Додаємо підписи до ребер
+        edge_labels = {(source, destination): weight for source, destination, weight in self.edges}
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, label_pos=0.5)
+
+        # Підсвічуємо найкоротший шлях
+        if path:
+            path_edges = list(zip(path, path[1:]))
+            nx.draw_networkx_edges(G, pos, edgelist=path_edges, edge_color='r', width=2)
+            nx.draw_networkx_nodes(G, pos, nodelist=path, node_color='r', node_size=1500)
+        
+        plt.title(f"Найкоротший шлях від вершини {start} до вершини {end}")
+        plt.axis('off')
+        plt.savefig(f'images/nodes-path-{start}-{end}.png')
+        plt.close()
 
 if __name__ == "__main__":
     # Створення графа
